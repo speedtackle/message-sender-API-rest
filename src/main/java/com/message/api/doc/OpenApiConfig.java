@@ -18,7 +18,7 @@ public class OpenApiConfig {
                         .version("v1.0.0")
                         .contact(new Contact()
                                 .name("Felipe Borsato Tostes")
-                                .email("fborsatotostes@email.com")
+                                .email("")
                         )
                 );
     }
