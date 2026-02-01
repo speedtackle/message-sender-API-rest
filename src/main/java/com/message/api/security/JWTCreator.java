@@ -11,7 +11,6 @@ import io.jsonwebtoken.io.Decoders;
 
 import java.security.Key;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class JWTCreator {
 
@@ -31,7 +30,8 @@ public class JWTCreator {
                 .setSubject(jwtObject.getSubject())
                 .setIssuedAt(jwtObject.getIssuedAt())
                 .setExpiration(jwtObject.getExpiration())
-                .claim(ROLES_AUTHORITIES, formatRoles(jwtObject.getRoles()))
+                // 🔥 AGORA SALVA APENAS STRING
+                .claim(ROLES_AUTHORITIES, normalizeRoles(jwtObject.getRoles()))
                 .signWith(signingKey)
                 .compact();
 
@@ -41,6 +41,7 @@ public class JWTCreator {
     // ========================
     // PARSE TOKEN
     // ========================
+    @SuppressWarnings("unchecked")
     public static JWTObject parse(String token, String prefix, String key)
             throws ExpiredJwtException, UnsupportedJwtException,
             MalformedJwtException, SignatureException {
@@ -69,10 +70,9 @@ public class JWTCreator {
     // ========================
     // ROLE NORMALIZATION
     // ========================
-    private static List<String> formatRoles(List<String> roles) {
+    private static List<String> normalizeRoles(List<String> roles) {
         return roles.stream()
-                .map(r -> "ROLE_" + r.replace("ROLE_", ""))
-                .collect(Collectors.toList());
+                .map(r -> "ROLE_" + r.toUpperCase())
+                .toList();
     }
 }
-

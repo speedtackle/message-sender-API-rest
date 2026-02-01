@@ -8,7 +8,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -21,7 +20,6 @@ import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.SignatureException;
 
 import java.io.IOException;
-
 
 public class JWTFilter extends OncePerRequestFilter {
 
@@ -41,32 +39,37 @@ public class JWTFilter extends OncePerRequestFilter {
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
 
         try {
+
+            // 🔥 Verifica se existe header e começa com Bearer
             if (header != null && header.startsWith(JWTProperties.PREFIX + " ")) {
 
-                JWTObject tokenObject = JWTCreator.parse(
-                        header,
-                        JWTProperties.PREFIX,
-                        JWTProperties.KEY
-                );
+                // Evita autenticar duas vezes
+                if (SecurityContextHolder.getContext().getAuthentication() == null) {
 
-                String username = tokenObject.getSubject();
+                    JWTObject tokenObject = JWTCreator.parse(
+                            header,
+                            JWTProperties.PREFIX,
+                            JWTProperties.KEY
+                    );
 
-                // 🔥 CARREGA O USERDETAILS
-                UserDetails userDetails =
-                        userDetailsService.loadUserByUsername(username);
+                    String username = tokenObject.getSubject();
 
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails, // agora é UserDetails
-                                null,
-                                userDetails.getAuthorities()
-                        );
+                    UserDetails userDetails =
+                            userDetailsService.loadUserByUsername(username);
 
-                authentication.setDetails(
-                        new WebAuthenticationDetailsSource().buildDetails(request)
-                );
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails,
+                                    null,
+                                    userDetails.getAuthorities()
+                            );
 
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                    authentication.setDetails(
+                            new WebAuthenticationDetailsSource().buildDetails(request)
+                    );
+
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
             }
 
             filterChain.doFilter(request, response);
@@ -78,4 +81,3 @@ public class JWTFilter extends OncePerRequestFilter {
         }
     }
 }
-
