@@ -28,7 +28,6 @@ public class JWTFilter extends OncePerRequestFilter {
     public JWTFilter(UserDetailsService userDetailsService) {
         this.userDetailsService = userDetailsService;
     }
-
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
@@ -56,6 +55,8 @@ public class JWTFilter extends OncePerRequestFilter {
 
                     UserDetails userDetails =
                             userDetailsService.loadUserByUsername(username);
+                    
+                    System.out.println("Authorities do usuário: " + userDetails.getAuthorities());
 
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(
@@ -73,6 +74,7 @@ public class JWTFilter extends OncePerRequestFilter {
             }
 
             filterChain.doFilter(request, response);
+            
 
         } catch (ExpiredJwtException e) {
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
